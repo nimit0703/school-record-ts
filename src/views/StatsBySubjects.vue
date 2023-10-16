@@ -15,15 +15,16 @@
 </template>
 
 <script lang="ts">
-// import stats from "../mixin/stats";
+import stats from "../mixin/stats";
 import Table from "../components/Table.vue";
 import Chart from "../components/Chart.vue";
 import Chart2 from "../components/Chart2.vue";
+import _ from "lodash";
 export default {
-  // mixins: [stats],
+  mixins: [stats],
   data() {
     return {
-      alldata: this.getAllDataReport(),
+      alldata: this.getAllDataReport() ,
       userData: this.$store.state.thisStudent,
       items: [] as any,
     };
@@ -35,29 +36,28 @@ export default {
   },
   created() {
     const thisMarks = this.userData.marks;
-    let i = -1;
-    for (let sub in thisMarks) {
-      i++;
-      const my_marks = thisMarks[sub];
-      const matchingObject = this.alldata.find(
-        (obj: { name: string }) => obj.name === sub
-      );
 
-      const avg_marks = matchingObject.avg.toFixed(2);
-      const mean = matchingObject.mean.toFixed(2);
-      const max = matchingObject.max;
-      const min = matchingObject.min;
-      const values = {
-        subject: sub,
+    const items = _.map(thisMarks, (my_marks, subject) => {
+      const matchingObject = _.find(this.alldata, { name: subject });
+
+      if (!matchingObject) {
+        return null;
+      }
+      return {
+        subject,
         my_marks,
-        avg_marks,
-        mean,
-        max,
-        min,
+        avg_marks: matchingObject.avg.toFixed(2),
+        mean: matchingObject.mean.toFixed(2),
+        max: matchingObject.max,
+        min: matchingObject.min,
       };
-      this.items.push(values);
+    });
+
+    this.items = _.compact(items); // Remove null values
+
+    _.forEach(this.items, (values) => {
       console.log(values);
-    }
+    });
   },
   beforeDestroy() {
     console.log("beforeDestroyy :: bySubjects");
@@ -68,27 +68,6 @@ export default {
     }, 700);
   },
   methods: {
-    getAllDataReport() {
-      const thisMarks = this.$store.state.thisStudent.marks;
-      const allData = [];
-      for (let sub in thisMarks) {
-        const name = sub;
-        const avg = this.$store.getters.getAverageScore(name);
-        const mean = this.$store.getters.getMeanScore(name);
-        const max = this.$store.getters.getMaxScore(name);
-        const min = this.$store.getters.getMinScore(name);
-        const subData = {
-          name: name,
-          avg: avg,
-          mean: mean,
-          max: max,
-          min: min,
-        };
-        allData.push(subData);
-      }
-      // console.log(allData);
-      return allData;
-    },
-  },
-};
+  }
+}
 </script>
