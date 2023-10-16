@@ -85,6 +85,7 @@ const store = new Vuex.Store({
     },
     setNewTimmer(state) {
       state.time = 0;
+      state.timer = 0;
     },
     setSpinnerVisibility(state,show){
       state.showSpinner = show;
