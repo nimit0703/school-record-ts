@@ -75,7 +75,7 @@
             ></b-form-input>
 
             <b-input-group-append>
-              <b-button :disabled="!filter" @click="filter= ''"
+              <b-button :disabled="!filter" @click="filter = ''"
                 >Clear</b-button
               >
             </b-input-group-append>
@@ -117,6 +117,7 @@
         <b-button-group>
           <b-button variant="success" @click="showToppers">Topper</b-button>
           <b-button variant="danger" @click="showFail">fail</b-button>
+          <b-button @click="items = $store.state.allStudents">Clear</b-button>
         </b-button-group>
       </b-col>
     </b-row>
@@ -181,6 +182,8 @@
 </template>
 
 <script lang="ts">
+import _ from "lodash";
+
 export default {
   data() {
     return {
@@ -236,7 +239,7 @@ export default {
       sortBy: "",
       sortDesc: false,
       sortDirection: "asc",
-      filter: '',
+      filter: "",
       filterOn: [],
       infoModal: {
         id: "info-modal",
@@ -278,15 +281,20 @@ export default {
   },
   methods: {
     showToppers() {
-      // Filter the students to show only the toppers based on your criteria
-      // For example, you might filter by a minimum percentage score.
       const minimumPercentage = 90; // Adjust this as needed.
 
-      this.items = this.$store.state.allStudents.filter((student:{id:number}) => {
+      this.items = _.filter(this.$store.state.allStudents, (student) => {
         return (
           this.$store.getters.getPercentageById(student.id) >= minimumPercentage
         );
       });
+
+      // Sort the items by percentage in descending order
+      this.items = _.orderBy(
+        this.items,
+        [(student) => this.$store.getters.getPercentageById(student.id)],
+        ["desc"]
+      );
 
       // Update the total number of rows for pagination
       this.totalRows = this.items.length;
@@ -294,16 +302,15 @@ export default {
     showFail() {
       const minimumPercentage = 35; // Adjust this as needed.
 
-      this.items = this.$store.state.allStudents.filter((student:{id:number}) => {
+      this.items = _.filter(this.$store.state.allStudents, (student) => {
         return (
           this.$store.getters.getPercentageById(student.id) <= minimumPercentage
         );
       });
-
       // Update the total number of rows for pagination
       this.totalRows = this.items.length;
     },
-    rowClass(item:{id:number}) {
+    rowClass(item: { id: number }) {
       const per = this.$store.getters.getPercentageById(item.id);
       if (per < 35) {
         if (item.id === this.$store.state.thisStudent.id) {
@@ -322,7 +329,7 @@ export default {
       }
       return "";
     },
-    info(item:{id:number}, index:number, button:any) {
+    info(item: { id: number }, index: number, button: any) {
       this.infoModal.title = `Row index: ${index}`;
       this.infoModal.content = JSON.stringify(item, null, 2);
       this.$root.$emit("bv::show::modal", this.infoModal.id, button);
@@ -331,8 +338,7 @@ export default {
       this.infoModal.title = "";
       this.infoModal.content = "";
     },
-    onFiltered(filteredItems:{length:number}) {
-      // Trigger pagination to update the number of buttons/pages due to filtering
+    onFiltered(filteredItems: { length: number }) {
       this.totalRows = filteredItems.length;
       this.currentPage = 1;
     },

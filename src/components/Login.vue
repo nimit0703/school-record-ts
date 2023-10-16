@@ -12,6 +12,7 @@
 
 <script lang="ts">
 import axios from "axios"; // Import Axios at the top
+import _ from "lodash";
 
 export default {
   data() {
@@ -21,16 +22,15 @@ export default {
     };
   },
   methods: {
-    fetchData() {
-      const apiUrl = "https://randomuser.me/api";
+    async fetchData() {
+      const API = "https://randomuser.me/api";
       return axios
-        .get(apiUrl)
+        .get(API)
         .then((response) => {
           const userData = response.data.results[0];
+          const { email, gender } = _.pick(userData, ["email", "gender"]);
           const name = `${userData.name.first} ${userData.name.last}`;
           const thumbnail = userData.picture.thumbnail;
-          const email = userData.email;
-          const gender = userData.gender;
 
           // Return the object
           return {
@@ -42,7 +42,6 @@ export default {
         })
         .catch((error) => {
           console.error("Error fetching data:", error);
-          // Handle the error as needed
         });
     },
     submitForm() {

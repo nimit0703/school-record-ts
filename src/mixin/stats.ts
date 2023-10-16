@@ -1,4 +1,5 @@
 import Vue from "vue";
+import _ from "lodash"; // Import Lodash at the top
 
 export default Vue.extend({
   methods: {
@@ -7,63 +8,54 @@ export default Vue.extend({
       const report: { [key: string]: number | string } = {};
 
       // Initialize variables for total marks and best/worst scores
-      let totalMarks = 0;
-      let bestSubject = "";
-      let bestScore = -1;
-      let worstSubject = "";
-      let worstScore = Number.MAX_VALUE; // Initialize to a high value
+      const totalMarks = _.sum(_.values(scores));
+      const [bestSubject, bestScore] = _.maxBy(
+        _.toPairs(scores),
+        ([subject, score]) => score
+      );
+      const [worstSubject, worstScore] = _.minBy(
+        _.toPairs(scores),
+        ([subject, score]) => score
+      );
 
-      // Loop through the subject scores
-      for (const subject in scores) {
-        const score = scores[subject];
-        totalMarks += score;
+      // Loop through the subject sc
 
-        // Update best and worst scores
-        if (score > bestScore) {
-          bestScore = score;
-          bestSubject = subject;
-        }
-
-        if (score < worstScore) {
-          worstScore = score;
-          worstSubject = subject;
-        }
-      }
-
-      // Calculate average marks and percentage
-      const numSubjects = Object.keys(scores).length;
-      const averageMarks = (totalMarks / numSubjects).toFixed(2);
-      const percentage = ((totalMarks / (numSubjects * 100)) * 100).toFixed(2);
+      const numSubjects = _.size(scores);
+      const averageMarks = _.divide(totalMarks, numSubjects).toFixed(2);
+      const percentage = _.multiply(
+        _.divide(totalMarks, _.multiply(numSubjects, 100)),
+        100
+      ).toFixed(2);
 
       console.log(averageMarks, percentage);
 
       // Populate the report object
-      report["Average Marks"] = averageMarks;
-      report["Total Marks"] = totalMarks;
-      report["Percentage"] = percentage;
-      report["Best Subject"] = `${bestSubject} (${bestScore})`;
-      report["Worst Subject"] = `${worstSubject} (${worstScore})`;
+      _.assign(report, {
+        "Average Marks": averageMarks,
+        "Total Marks": totalMarks,
+        Percentage: percentage,
+        "Best Subject": `${bestSubject} (${bestScore})`,
+        "Worst Subject": `${worstSubject} (${worstScore})`,
+      });
 
       return report;
     },
     getAllDataReport() {
       const thisMarks = this.$store.state.thisStudent.marks;
-      const allData = [];
-      for (let sub in thisMarks) {
-        const name = sub;
+      const allData = _.map(thisMarks, (my_marks, name) => {
         const avg = this.$store.getters.getAverageScore(name);
         const mean = this.$store.getters.getMeanScore(name);
         const max = this.$store.getters.getMaxScore(name);
         const min = this.$store.getters.getMinScore(name);
-        const subData = {
-          name: name,
-          avg: avg,
-          mean: mean,
-          max: max,
-          min: min,
+
+        return {
+          name,
+          avg,
+          mean,
+          max,
+          min,
         };
-        allData.push(subData);
-      }
+      });
       // console.log(allData);
       return allData;
     },
