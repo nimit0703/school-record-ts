@@ -30,6 +30,7 @@
 <script lang="ts">
 import stats from '../mixin/stats';
 export default {
+  mixins: [stats] as any,
   data() {
     return {
       report: this.getReport(),
@@ -37,7 +38,6 @@ export default {
       marks: {},
     };
   },
-  mixins: [stats],
   
   created() {
     this.userData = this.$store.state.thisStudent;
