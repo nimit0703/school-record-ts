@@ -166,7 +166,7 @@ export default {
     autofill() {
       if (!this.isEditing) return;
       _.forEach(this.subjects, (sub) => {
-        _.assign(this.form.marks, { [sub]: _.random(100) });
+        this.form.marks[sub] = _.random(1,101);
       });
     },
     countDownChanged(dismissCountDown: number) {

@@ -14,7 +14,7 @@ import _ from "lodash"; // Import lodash
 export default {
   data() {
     return {
-      fields: ["subject", "my_marks", "avg_marks", "mean", "max", "min"],
+      fields: ["subject", "my_marks", "avg", "mean", "max", "min"],
       items: [] as any,
     };
   },
@@ -32,16 +32,16 @@ export default {
           }
           return value;
         });
-
         return {
           subject: sub,
           my_marks,
           ...transformedObject,
         };
       }
-
+      
       return null; // Return null for items without a matchingObject
     });
+    console.log("table",this.items)
   },
   props: {
     alldata: Array as any,
