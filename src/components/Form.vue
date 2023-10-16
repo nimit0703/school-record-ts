@@ -54,22 +54,18 @@
 </template>
 
 <script lang="ts">
-import _ from 'lodash';
+import _ from "lodash";
 
 export default {
   data() {
     return {
-      erroLogInvalidMark: false,
-      isEditing: false,
-      form: {
-        id: this.$store.state.thisStudent.id,
-        marks: {} as { [key: string]: number }, // Provide a type for form.marks
-      },
-      dismissSecs: 3,
-      dismissCountDown: 0,
       show: true,
-      alertClass: "success",
       alertmsg: "",
+      isEditing: false,
+      dismissSecs: 3,
+      alertClass: "success",
+      dismissCountDown: 0,
+      erroLogInvalidMark: false,
       subjects: [
         "Math",
         "Compiler",
@@ -77,36 +73,43 @@ export default {
         "DBMS",
         "SoftwareEngineering",
       ],
+      form: {
+        id: this.$store.state.thisStudent.id,
+        marks: {} as { [key: string]: number }, // Provide a type for form.marks
+      },
     };
   },
   created() {
     const marks = this.$store.getters.getMarksById(this.form.id);
-    this.form.marks = marks;
+    _.assign(this.form.marks, marks);
     console.log(this.form.id, marks);
   },
   beforeUpdate() {
-    for (const subject in this.form.marks) {
+    const formMarksKeys = _.keys(this.form.marks);
+    _.forEach(formMarksKeys, (subject) => {
       if (!this.isMarksValid(subject)) {
         console.warn(
           `Invalid data for ${subject}: ${this.form.marks[subject]}`
         );
-
         this.erroLogInvalidMark = true;
-        const ele = document.getElementById(`type-${subject}`)!;
-        ele.classList.add("shake-animation");
-        ele.classList.add("text-danger");
-        ele.classList.add("border-danger");
-        setTimeout(() => {
-          ele.classList.remove("shake-animation");
-        }, 2000);
+        const ele = document.getElementById(`type-${subject}`);
+        if (ele) {
+          ele.classList.add("shake-animation");
+          ele.classList.add("text-danger");
+          ele.classList.add("border-danger");
+          setTimeout(() => {
+            ele.classList.remove("shake-animation");
+          }, 2000);
+        }
         this.alertClass = "danger";
         this.alertmsg = "Invalid marks";
         this.showAlert();
       }
-    }
+    });
   },
   updated() {
-    for (const subject in this.form.marks) {
+    const formMarksKeys = _.keys(this.form.marks);
+    _.forEach(formMarksKeys, (subject) => {
       if (this.isMarksValid(subject)) {
         this.erroLogInvalidMark = true;
         const ele = document.getElementById(`type-${subject}`)!;
@@ -118,9 +121,8 @@ export default {
           ele.classList.remove("shake-animation");
         }, 500);
       }
-    }
+    });
   },
-
   computed: {
     hasInvalidMarks() {
       for (const subject in this.form.marks) {
@@ -131,7 +133,6 @@ export default {
       return false; // Enable the "Submit" button if all marks are valid
     },
   },
-
   methods: {
     toggleEditing() {
       this.isEditing = !this.isEditing;
@@ -141,12 +142,9 @@ export default {
         return; // Prevent form submission if there are invalid marks
       }
       event.preventDefault();
-      const marksAsNumbers: { [key: string]: number } = {};
-      for (const subject in this.form.marks) {
-        if (this.form.marks.hasOwnProperty(subject)) {
-          marksAsNumbers[subject] = parseInt(_.toString(this.form.marks[subject]));
-        }
-      }
+      const marksAsNumbers = _.mapValues(this.form.marks, (value) =>
+        _.toNumber(value)
+      );
       this.$store.commit("setMarks", {
         id: this.form.id,
         marks: marksAsNumbers,
@@ -163,20 +161,13 @@ export default {
     },
     isMarksValid(subject: any) {
       const marks = this.form.marks[subject];
-      return marks >= 0 && marks <= 100;
+      return _.inRange(marks, 0, 101); // Check if marks are in the range [0, 100]
     },
     autofill() {
-      if (!this.isEditing) {
-        return;
-      }
-      for (let sub of this.subjects) {
-        this.form.marks[`${sub}`] = this.getRandomNumber(100);
-      }
-    },
-    getRandomNumber(max: number) {
-      const random = Math.random();
-      const randomNumber = Math.floor(random * (1 + max));
-      return randomNumber;
+      if (!this.isEditing) return;
+      _.forEach(this.subjects, (sub) => {
+        _.assign(this.form.marks, { [sub]: _.random(100) });
+      });
     },
     countDownChanged(dismissCountDown: number) {
       this.dismissCountDown = dismissCountDown;

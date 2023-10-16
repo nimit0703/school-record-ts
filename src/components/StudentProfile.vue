@@ -47,7 +47,9 @@ export default {
       mainProps: {},
     };
   },
-  beforeCreate() {},
+  beforeCreate() {
+    console.log("Student profile Comp. :: beforeCreate")
+  },
   created() {
     this.mainProps = {
       src: this.userData.img,
